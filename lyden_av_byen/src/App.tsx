@@ -1,8 +1,19 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import logo from './logo.svg';
 import './App.css';
+import {collection} from "./firebase";
 
 function App() {
+
+  useEffect(() => {
+    collection<{name: string}>("sound").get().then((sounds) => {
+      sounds.docs.forEach((sound) => {
+        const data = sound.data();
+        console.log(data);
+      })
+    });
+
+  },[])
   return (
     <div className="App">
       <header className="App-header">
