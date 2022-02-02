@@ -10,8 +10,9 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
+      -   working-directory: lyden_av_byen
       - uses: actions/checkout@v2
-      - run: cd lyden_av_byen && npm ci && npm run build
+      - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
