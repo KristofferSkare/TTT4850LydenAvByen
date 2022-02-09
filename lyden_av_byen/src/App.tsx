@@ -3,6 +3,8 @@ import logo from './logo.svg';
 import './App.css';
 import {collection} from "./firebase";
 import MapPhoto from './MapPhoto';
+import Player from './Player';
+import MultiPlayer from './MultiPlayer';
 
 function App() {
 
