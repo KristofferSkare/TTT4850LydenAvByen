@@ -21,6 +21,9 @@ function App() {
     <>
     <div className="App">
       <header className="App-header">
+        <input type="text" />
+        <input type="text" name="" id="" />
+      <Player url="http://streaming.tdiradio.com:8000/house.mp3"></Player>
         <MapPhoto/>
         <img src={logo} className="App-logo" alt="logo" />
         <p>

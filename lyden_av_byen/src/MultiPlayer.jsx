@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import './App.css'
+
 
 const useMultiAudio = urls => {
   const [sources] = useState(
@@ -74,7 +76,7 @@ const MultiPlayer = ({ urls }) => {
 }
 
 const Player = ({ player, toggle }) => (
-  <div>
+  <div className='AudioButton'>
     <p>Stream URL: {player.url}</p>
     <button onClick={toggle}>{player.playing ? 'Pause' : 'Play'}</button>
   </div>

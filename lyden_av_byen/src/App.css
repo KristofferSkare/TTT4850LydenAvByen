@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+.AudioButton{
+  background-color: green;
+  color: red;
+  border: 2px solid blue;
+}
+.button{
+  position: absolute;
+  background-color: cornflowerblue;
+  
+  border: 2px solid red;
+}
