@@ -1,39 +1,42 @@
 import { MapContainer, TileLayer, Marker, Popup, Circle, SVGOverlay } from 'react-leaflet'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import gpxParser from './gpxParser';
+import test1File from "./Test1.txt";
+import forslag1File from "./Forslag_1.txt";
+import rute2File from  "./Rute2.txt";
 
-const iconOptions = {
-
-}
+import ColorMap from './ColorSvgOverlay';
 
 const Map = () => {
     const [position, setPosition] = useState([63.430595, 10.392043]) 
+    
+    const [file, setFile] = useState(rute2File)
     const bounds = [
-        [63.424380, 10.380492],
-        [63.435283, 10.407567]
+        [63.424350, 10.376433],
+        [63.435264, 10.407295]
       ]
+    const [markers, setMarkers] = useState([]);
+
+    useEffect(() => {
+        gpxParser(file).then((res) => {
+            const markers = res.map((marker) => ({...marker, strength: Math.random()}))
+            setMarkers(markers)
+        })
+    },[file])
+
     return (
-    <div style={{width: "100%", height: "100vh"}}>
+    <div >
         <MapContainer center={position} zoom={15}>
 
         <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-        <SVGOverlay attributes={{ stroke: 'red' }} bounds={bounds}>
-            <rect x="0" y="0" width="100%" height="100%" fill="blue" opacity={0.2}/>
-            <text x="50%" y="50%" stroke="white">
-            text
-            </text>
-        </SVGOverlay>
-            <Marker 
-            //icon={iconOptions}
-            position={position}  
-            eventHandlers={{
-                click: () => {
-                console.log('marker clicked')
-                },
-            }}>
-            </Marker>
+            <SVGOverlay bounds={bounds}>
+                <ColorMap markers={markers} bounds={bounds}/>
+            </SVGOverlay>
+            
+           
         </MapContainer>
     </div>);
 }
