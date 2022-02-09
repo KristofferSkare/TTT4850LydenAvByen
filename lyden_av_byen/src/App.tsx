@@ -2,6 +2,9 @@ import React, {useEffect} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {collection} from "./firebase";
+import MapPhoto from './MapPhoto';
+import Player from './Player';
+import MultiPlayer from './MultiPlayer';
 
 function App() {
 
@@ -17,6 +20,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <MapPhoto/>
         <img src={logo} className="App-logo" alt="logo" />
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
