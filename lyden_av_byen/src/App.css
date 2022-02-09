@@ -42,3 +42,14 @@
   height: 100vh;
   z-index: 1;
 }
+.AudioButton{
+  background-color: green;
+  color: red;
+  border: 2px solid blue;
+}
+.button{
+  position: absolute;
+  background-color: cornflowerblue;
+  
+  border: 2px solid red;
+}
