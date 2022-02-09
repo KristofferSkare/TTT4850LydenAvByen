@@ -17,7 +17,8 @@ function App() {
     });
 
   },[])
-  return (
+  return ( 
+    <>
     <div className="App">
       <header className="App-header">
         <MapPhoto/>
@@ -35,6 +36,18 @@ function App() {
         </a>
       </header>
     </div>
+    <div>
+      <Player url="http://streaming.tdiradio.com:8000/house.mp3"></Player>
+
+      <MultiPlayer
+        urls={[
+          'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+          'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+          'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+        ]}
+      />
+    </div>
+    </>
   );
 }
 
