@@ -5,8 +5,11 @@ import test1File from "./Test1.txt";
 import forslag1File from "./Forslag_1.txt";
 import rute2File from  "./Rute2.txt";
 import Player from './Player';
+import firebase, {collection} from './firebase'
+import AudioMarkersMap from './AudioMarkers';
 
 import ColorMap from './ColorSvgOverlay';
+
 
 
 const Map = () => {
@@ -22,6 +25,15 @@ const Map = () => {
         },
         [playing]
     );
+
+
+
+/*
+    useEffect(()=>{
+        fetchAudioMarkers();
+    }, [])
+
+    */
 
 
     const [position, setPosition] = useState([63.430595, 10.392043]) 
@@ -50,7 +62,11 @@ const Map = () => {
             />
             <SVGOverlay bounds={bounds}>
                 <ColorMap markers={markers} bounds={bounds}/>
-            </SVGOverlay>            
+            </SVGOverlay>     
+
+            <AudioMarkersMap />
+
+            {/*       
             <Marker 
             //icon={iconOptions}
             position={position}  
@@ -98,6 +114,7 @@ const Map = () => {
                 },
             }}>
             </Marker>
+        */}
 
         </MapContainer>
         
