@@ -1,8 +1,8 @@
 const parseCoords = (line) => {
     const startLat = line.indexOf('lat="') + 5;
     const startLong = line.indexOf('lon="') + 5;
-    const latString = line.substring(startLat, startLong - 7)
-    const longString = line.substring(startLong, line.length -3)
+    const latString = line.substring(startLat, startLong - 6)
+    const longString = line.substring(startLong, line.length -1)
     return [Number(latString), Number(longString)]
 }
 
