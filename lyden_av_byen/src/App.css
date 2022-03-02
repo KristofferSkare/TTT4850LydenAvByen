@@ -94,7 +94,8 @@
   background: #fff;
   border-radius: 4px;
   padding: 20px;
-  border: 1px solid #999;
+  font-family: Arial, Helvetica, sans-serif;
+  border: 2px solid #004f9e;
   overflow: auto;
 }
 
@@ -116,7 +117,7 @@
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
  
 .close-icon {

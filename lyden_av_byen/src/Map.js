@@ -10,10 +10,14 @@ import InfoText from './InfoText';
 import NtnuLogo from './ntnulogo.svg';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import VolumeUpSharpIcon from '@mui/icons-material/VolumeUpSharp';
+import AudioCalibrator from './AudioCalibrator';
 
 
 
 const Map = () => {
+
+
+    const [place, setPlace] = useState("marker");
 
     const [position, setPosition] = useState([63.430595, 10.392043]) 
     
@@ -43,7 +47,7 @@ const Map = () => {
 
         <div class="popup-grid">
             <PopUp name={"info"}  content={<InfoText/>} icon={<InfoOutlinedIcon/>} />
-            <PopUp name={"kalibrer"} content={"LYYYYYYYYYYYYYYYYD!"} icon={<VolumeUpSharpIcon/>} />
+            <PopUp name={"kalibrer"} content={<AudioCalibrator/>} icon={<VolumeUpSharpIcon/>} />
             <PopUp name={"info3"} content={"3"} />
         </div>
 

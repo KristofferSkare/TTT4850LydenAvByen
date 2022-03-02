@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Marker } from "react-leaflet";
 import { collection } from './firebase'
 
@@ -10,15 +10,17 @@ export type AudioMarker = {
     longitude : number
   }
 
+  interface MarkersProps{
+    place: string,
+    setPlace: React.Dispatch<React.SetStateAction<string>>
+  }
 
   const AudioMarkersMap = () => {
     
-    const [volume, setVolume] = useState(0);
-
-    const [url, setUrl] = useState("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3");
-    const [audio, setAudio] = useState(new Audio(url));
+    const [audio, setAudio] = useState(new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"));
+    const [playing, setPlaying] = useState(false);
     
-    const [playing, setPlaying] = useState(true);
+    
     const [marker, setMarker] = useState("");
     const [fadeInInterval, setFadeIninterval] = useState<NodeJS.Timer| undefined>();
     const [fadeOutInterval, setFadeOutinterval] = useState<NodeJS.Timer| undefined>();
@@ -30,6 +32,16 @@ export type AudioMarker = {
   }
 
     const [audioMarkers, setAudioMarkers] = useState<AudioMarker[]>([]);
+
+    useEffect(()=>{
+      if (playing){
+
+        audio.play()
+      }
+      else {
+        audio.pause()
+      }
+    },[playing])
 
 /*
 
@@ -81,17 +93,6 @@ export type AudioMarker = {
       setFadeOutinterval(timer)
     }
 */
-    useEffect(()=>{
-
-      if (playing === true){
-        audio.play()
-        //fadeAudioIn()
-      } else{
-        //fadeAudioOut();
-        audio.pause()
-      }
-      
-    },[playing])
 
 /*
     useEffect(() => {
@@ -117,7 +118,6 @@ export type AudioMarker = {
             eventHandlers={{
                 click: () => {
                     const markerID = audioMarker.id;
-                    setUrl(audioMarker.audioUrl);
                     setPlaying(false);
                     setAudio(new Audio(audioMarker.audioUrl));
                     setPlaying(marker !== markerID);
