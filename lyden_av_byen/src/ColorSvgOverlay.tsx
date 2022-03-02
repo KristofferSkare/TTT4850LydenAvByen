@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import jsonGraph from "./graph.json";
+import { Circle } from 'react-leaflet';
 
 const pointInPolygon = require('point-in-polygon');
 
@@ -33,11 +34,15 @@ type Graph = {
 
 
 const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[number,number],[number, number]]}) => {
-    const interpolationResolution = 5; // In meters
+    const interpolationResolution = 3; // In meters
+    const rectWidth = 0.5;
+    const overlapp = 0.005;
+
     const [colorMarkers, setColorMarkers] = useState<JSX.Element[]>([]);
     const [lines, setLines] = useState<JSX.Element[]>([]);
     const [faces, setFaces] = useState<JSX.Element[]>([]);
     const [graph, setGraph] = useState<Graph>({edges: [], nodes: {}, neighbors: {}, faces: []})
+    const [defs, setDefs] = useState<JSX.Element[]>([]);
     const [interpolatedPoints, setInterpolatedPoints] = useState<JSX.Element[]>([]);
 
     const degToRad = (deg: number) => {
@@ -118,6 +123,7 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         return points;      
     }
     const pointsOnPolygon = (nodes: Coordinate[], resolution: number=interpolationResolution) => {
+        let offset = 0;
         let maxLat = -360;
         let minLat = 360;
         let maxLong = -360;
@@ -137,6 +143,10 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
                 minLong = pos[1];
             }
         }
+        minLat += offset
+        minLong += offset
+        maxLat -= offset
+        maxLong -= offset
 
         const distLat = distance([minLat, maxLong], [maxLat, maxLong]);
         const distLong = distance([maxLat, minLong], [maxLat, maxLong]);
@@ -147,18 +157,57 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         const stepLat = (maxLat - minLat)/(numLat - 1);
         const stepLong = (maxLong - minLong)/(numLong - 1);
 
-        const points: Coordinate[] = [];
-
+        const matrix: (Coordinate | undefined)[][] = [];
+        const triangles: Coordinate[][] = [];
         for (let i=0; i <numLat; i++) {
+            let ar:  Array<Coordinate|undefined> = [];
             for (let j=0; j<numLong; j++) {
                 const point: Coordinate = [minLat + i*stepLat, minLong + j*stepLong]
                 if (pointInPolygon(point, nodes)) {
-                    points.push(point);
+                    ar.push(point)
+                } else {
+                    ar.push(undefined)
                 }
-                
+            }
+            matrix.push(ar)
+        }
+
+        
+        for (let i=0; i <numLat; i++) {
+            for (let j=0; j<numLong; j++) {
+                const middle = matrix[i][j];
+                if (middle !== undefined){
+                    // There is a node above
+                    if (i+1 < matrix.length) {
+                        const top = matrix[i+1][j]
+                        if ( top !== undefined) { 
+                            // There is a node to the left
+                            if (j-1 > 0) {
+                                const  left = matrix[i][j-1]
+                                if ( left!== undefined) {
+                                    triangles.push([left, top , middle])
+                                }
+                            }
+                            
+                        }
+                    }
+                    if (i-1 > 0) {
+                        const bottom = matrix[i-1][j]
+                        if (bottom !== undefined) {
+                            // There is a node to the right
+                            if (j+1 < matrix[0].length) {
+                                const right = matrix[i][j+1]
+                                if ( right !== undefined) {
+                                    triangles.push([right, bottom, middle])
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-        return points;
+        
+        return triangles;
     }
 
     useEffect(() => {
@@ -179,56 +228,126 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
                 const marker = entry[1];
                 const coord = coordToPercentage(marker.pos, bounds);
                 return (
-                <><circle key={index} r={"0.3%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={"none"} stroke={"black"} strokeWidth={"0.1%"} opacity={1}/> 
+                <><circle key={index} r={"0.5%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={"none"} stroke={"black"} strokeWidth={"0.1%"} opacity={1}/> 
                     <text x={coord[0] +"%"} y={coord[1] +"%"} fontSize={"5%"}>{entry[0]}</text>
                 </>)
             });
-            setColorMarkers(svgCircles)
+            //setColorMarkers(svgCircles)
         }
     },[graph])
 
+    const markerToCircle = (marker: MeasurementNode, bounds: [[number,number],[number, number]], index: number) => {
+        const coord = coordToPercentage(marker.pos, bounds);
+        const color = valueToColor(marker.value)
+        return <circle key={index} r={ rectWidth/2 + "%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={color} strokeWidth={"0.1%"} opacity={1} />
+    }
+
+    const edgeToRectangles = (edge: Edge, pointsToInterpolate: MeasurementNode[], rectangles: JSX.Element[], gradients: JSX.Element[]) => {
+        const node1 = graph.nodes[edge[0]];
+        const node2 = graph.nodes[edge[1]];
+        let key = rectangles.length;
+        const linePoints = pointsOnLine(node1.pos, node2.pos);
+        for (let i=0; i < linePoints.length -1; i++) {
+            const pos = [linePoints[i], linePoints[i+1]]
+            let edge = pos.map((p) => {
+                const value = valueInterpolation(p, pointsToInterpolate);
+                const coord  = coordToPercentage(p)
+                const color = valueToColor(value);
+                return {x: coord[0], y: coord[1], color: color }
+            })
+            let dx = edge[1].x - edge[0].x;
+            if (dx < 0){
+                dx = -dx;
+                edge = [edge[1], edge[0]];
+            }
+            const dy = edge[1].y - edge[0].y;
+            const d = Math.sqrt(Math.pow(dy,2) + Math.pow(dx,2));
+            let ds = [+dy/d* rectWidth/2, -dx/d * rectWidth/2];
+          
+            let dr = [dx/d* overlapp, dy/d * overlapp]
+            let corners = "";
+            corners += (edge[0].x + ds[0]) + "," + (edge[0].y + ds[1]);
+            corners += " "
+            corners += (edge[0].x - ds[0]) + "," + (edge[0].y - ds[1]);
+            corners += " "
+            corners += (edge[1].x - ds[0] + dr[0]) + "," + (edge[1].y - ds[1]  + dr[1]);
+            corners += " "
+            corners += (edge[1].x + ds[0]+ dr[0]) + "," + (edge[1].y + ds[1]  + dr[1]);
+            corners += " "
+            let textKey = "inter_poly_edge_" + key;
+            let angle = Math.atan2(dy,dx);
+            
+            angle -= Math.PI/2
+            var angleCoords = {
+                'x1': Math.round(50 + Math.sin(angle) * 50) + '%',
+                'y2': Math.round(50 + Math.cos(angle) * 50) + '%',
+                'x2': Math.round(50 + Math.sin(angle + Math.PI) * 50) + '%',
+                'y1': Math.round(50 + Math.cos(angle + Math.PI) * 50) + '%',};
+            gradients.push(
+                <linearGradient key={"grad_" + textKey} id={"grad_" + textKey} x1={angleCoords.x1} y1={angleCoords.y1}  x2={angleCoords.x2} y2={angleCoords.y2}>
+                  <stop offset="0%" style={{"stopColor": edge[0].color, "stopOpacity":1}} />
+                  <stop offset="100%" style={{"stopColor": edge[1].color, "stopOpacity":1}} />
+                </linearGradient>
+            )
+            rectangles.push(<polygon  points={corners} key={textKey} fill={"url(#grad_" + textKey + ")" } opacity={1} />)
+            key+=1
+
+        }   
+    }
+
+    const faceToTriangles = (face: Face, polys: JSX.Element[]) => {
+        let nodes = face.map((id) => graph.nodes[id]);
+        let key = polys.length;
+        const triangles = pointsOnPolygon(nodes.map((node) => node.pos))
+        triangles.forEach((triangle, i) => {
+            let coords = "";
+            let color = ""
+            triangle.forEach((pos) => {
+                const value = valueInterpolation(pos, nodes);
+                const coord  = coordToPercentage(pos)
+                color = valueToColor(value);
+                coords += coord[0] + "," + coord[1] + " ";
+            })
+            polys.push(<polygon key={"triangle_"+ i +"_" + key} fill={color} points={coords} opacity={1}/>)
+            key+=1
+        })
+    }
+
     useEffect(() => {
-        let interPoints: JSX.Element[] = [];
+        let defs: JSX.Element[] = [];
+        let circles: JSX.Element[] = []
+        let rectangles: JSX.Element[] = []
+        let triangles: JSX.Element[] = []
+        defs.push(<filter id="f1" x="0.5" y="0.5" key={"f1"}>
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.1" />
+                </filter>)
+        if (graph.nodes) {
+            circles = Object.entries(graph.nodes).map((entry, index) => markerToCircle(entry[1], bounds, index));
+        }
         if (graph.edges) {
-            let key =0;
-            graph.edges.forEach((edge, i) => {
-                const node1 = graph.nodes[edge[0]];
-                const node2 = graph.nodes[edge[1]];
-                const linePoints = pointsOnLine(node1.pos, node2.pos);
-               linePoints.forEach((pos, index) => {
-                    const value = valueInterpolation(pos, [node1, node2]);
-                    const coord  = coordToPercentage(pos)
-                    const color = valueToColor(value);
-                    interPoints.push(<circle key={"interpolated_" + key} r={"0.2%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={color} opacity={0.2 + +0.6*value}/>); 
-                    key+=1;
-                })
-               
-            })
-        }
+            graph.edges.forEach((edge, i) => edgeToRectangles(edge, edge.map((i) => graph.nodes[i]), rectangles, defs))
+        }   
         if (graph.faces) {
-            let key=0;
             graph.faces.forEach((face) => {
-                let nodes = face.map((id) => graph.nodes[id]);
-                const points = pointsOnPolygon(nodes.map((node) => node.pos))
-                points.forEach((pos, i) => {
-                    const value = valueInterpolation(pos, nodes);
-                    const coord  = coordToPercentage(pos)
-                    const color = valueToColor(value);
-                    interPoints.push(<circle key={"interpolated_poly_" + key} r={"0.3%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={color} opacity={0.2 + +0.6*value}/>); 
-                    key+=1;
-                })
+                faceToTriangles(face, triangles)    
+                const nodes = face.map((i) => graph.nodes[i])
+                for (let i = 0; i< face.length; i++) {
+                    let edge: Edge = [face[i], face[(i+1)%face.length]];
+                    edgeToRectangles(edge, nodes, rectangles, defs)
+                }     
             })
         }
-        setInterpolatedPoints(interPoints)
+        setInterpolatedPoints([...circles,...triangles,...rectangles])
+        setDefs(defs)
     },[graph])
 
     return (
         <>
          <svg width={"100%"} height={"100%"} viewBox={"0 0 100 100"}>
             {interpolatedPoints}
-            {
-            //lines
-            }
+            <defs>
+                {defs}
+            </defs>
             {colorMarkers}
         </svg>
         </>
