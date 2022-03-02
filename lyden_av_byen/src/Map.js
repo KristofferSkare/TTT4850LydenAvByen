@@ -17,6 +17,7 @@ import AudioCalibrator from './AudioCalibrator';
 const Map = () => {
 
 
+    const [audio, setAudio] = useState(new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"))
     const [place, setPlace] = useState("marker");
 
     const [position, setPosition] = useState([63.430595, 10.392043]) 
@@ -47,8 +48,8 @@ const Map = () => {
 
         <div class="popup-grid">
             <PopUp name={"info"}  content={<InfoText/>} icon={<InfoOutlinedIcon/>} />
-            <PopUp name={"kalibrer"} content={<AudioCalibrator/>} icon={<VolumeUpSharpIcon/>} />
-            <PopUp name={"info3"} content={"3"} />
+            <PopUp name={"kalibrer"} content={<AudioCalibrator audio={audio} setAudio={(val) => {setAudio(val)}}/>} icon={<VolumeUpSharpIcon/>} />
+           {/* <PopUp name={"info3"} content={"3"} />*/ }
         </div>
 
         <MapContainer center={position} zoom={15}>

@@ -27,7 +27,7 @@ const PopUpBox = props  => {
           <>
 
     {
-        isOpen && <PopUpBox handleClose={togglePopup} content={props.content}/>
+        isOpen && <PopUpBox handleClose={togglePopup} content={props.content} />
         }
     
     
