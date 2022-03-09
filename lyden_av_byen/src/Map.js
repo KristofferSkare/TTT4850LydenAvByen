@@ -1,8 +1,9 @@
 import { MapContainer, TileLayer, SVGOverlay } from 'react-leaflet'
 import { useState, useEffect } from 'react';
 import gpxParser from './gpxParser';
-import rute2File from  "./Rute2.txt";
 import AudioMarkersMap from './AudioMarkers';
+import ruteFile from  "./Rute4.txt";
+
 
 import ColorMap from './ColorSvgOverlay';
 import PopUp from './PopUp';
@@ -22,9 +23,9 @@ const Map = () => {
 
     const [position, setPosition] = useState([63.430595, 10.392043]) 
     
-    const [file, setFile] = useState(rute2File)
+    const [file, setFile] = useState(ruteFile)
     const bounds = [
-        [63.424350, 10.376433],
+        [63.424350 -0.002903, 10.376433],
         [63.435264, 10.407295]
       ]
     const [markers, setMarkers] = useState([]);
