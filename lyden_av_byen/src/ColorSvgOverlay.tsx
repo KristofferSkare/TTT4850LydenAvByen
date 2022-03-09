@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import jsonGraph from "./graph.json";
+import { collection } from "./firebase";
+import {graphId} from "./Map";
+
+//import jsonGraph from "./graph.json";
 //import gpxParser from './gpxParser';
 
 //const data = require("./data_einar.txt");
@@ -17,8 +20,8 @@ const colors = colormap({
 
 type Coordinate = [number, number];
 
-type MeasurementNode = {
-    pos: Coordinate;
+type Node = {
+    position: Coordinate;
     time: Date;
     value: number;
 }
@@ -28,14 +31,13 @@ type Edge = [string, string];
 type Face = string[];
 
 type Graph = {
-    neighbors: {[id: string]: string[]}
     edges: Edge[],
-    nodes: {[id: string]: MeasurementNode},
+    nodes: {[id: string]: Node},
     faces: Face[],
 }
 
 
-const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[number,number],[number, number]]}) => {
+const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
     const interpolationResolutionEdge = 10; // In meters
     const interpolationResolutionFace = 3;
     const rectWidth = 0.5;
@@ -44,9 +46,7 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
    
 
     const [colorMarkers, setColorMarkers] = useState<JSX.Element[]>([]);
-    const [lines, setLines] = useState<JSX.Element[]>([]);
-    const [faces, setFaces] = useState<JSX.Element[]>([]);
-    const [graph, setGraph] = useState<Graph>({edges: [], nodes: {}, neighbors: {}, faces: []})
+    const [graph, setGraph] = useState<Graph>({edges: [], nodes: {}, faces: []})
     const [defs, setDefs] = useState<JSX.Element[]>([]);
     const [interpolatedPoints, setInterpolatedPoints] = useState<JSX.Element[]>([]);
 
@@ -69,11 +69,11 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         return c * r;
     }
 
-    const valueInterpolation = (pos: Coordinate, markers: MeasurementNode[], ) => {
+    const valueInterpolation = (position: Coordinate, markers: Node[], ) => {
         let sum_dist = 0;
         let sum_value = 0;
         for (const marker of markers) {
-            const dist = distance(pos, marker.pos)
+            const dist = distance(position, marker.position)
             if (dist < 0.1) {
                 return marker.value;
             }
@@ -105,15 +105,6 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
             return colors[colors.length -1];
         }
         return colors[index]
-    }
-
-    const neighborMapFromEdges = (edges: Edge[], nodes: {[id: string]: MeasurementNode}) => {
-        const neighbors: {[id: string]: string[]} = Object.fromEntries(Object.entries(nodes).map((entry) => [entry[0], []]))
-        edges.forEach((edge: Edge) => {
-            neighbors[edge[0]].push(edge[1])
-            neighbors[edge[1]].push(edge[0])
-        })
-        return neighbors
     }
 
     const pointsOnLine = (pos1: Coordinate, pos2: Coordinate, resolution: number=interpolationResolutionEdge) => {
@@ -215,44 +206,48 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         return triangles;
     }
 
-    useEffect(() => {
-        const jsonNodes = jsonGraph.nodes as unknown as {[id: string]: MeasurementNode}
-        const jsonEdges = jsonGraph.edges as unknown as [string, string][];
-        const jsonFaces = jsonGraph.faces as unknown as Face[];
-        setGraph({
-            nodes: jsonNodes, 
-            edges: jsonEdges,
-            neighbors: neighborMapFromEdges(jsonEdges, jsonNodes),
-            faces: jsonFaces,
-        })        
-    },[])
+    const getGraphFromFirebase = async () => {
+        const graphNode = (await collection<{graphString: string}>("Graphs").doc(graphId).get());
+        const graph = JSON.parse(graphNode?.data()?.graphString || "") as unknown as Graph;
+        return graph;
+    }
 
     useEffect(() => {
+        
+        getGraphFromFirebase().then((graph) => {
+            setGraph(graph);
+        })
+        
+    },[])
+    /*
+    useEffect(() => {
         if (graph.nodes){
+            
             const svgCircles = Object.entries(graph.nodes).map((entry, index) => {
                 const marker = entry[1];
-                const coord = coordToPercentage(marker.pos, bounds);
+                const coord = coordToPercentage(marker.position, bounds);
                 const textCoord = [coord[0] - 0.25, coord[1] + 0.25]
                 return (
                 <><circle key={index} r={"0.6%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={"yellow"} stroke={"none"} strokeWidth={"0.1%"} opacity={1}/> 
                     <text x={textCoord[0] + "%"} y={textCoord[1] + "%"} fontSize={"5%"}>{index+1}</text>
                 </>)
             });
-            //setColorMarkers(svgCircles)
+            setColorMarkers(svgCircles)
+            
         }
     },[graph])
-
-    const markerToCircle = (marker: MeasurementNode, bounds: [[number,number],[number, number]], index: number) => {
-        const coord = coordToPercentage(marker.pos, bounds);
+*/
+    const markerToCircle = (marker: Node, bounds: [[number,number],[number, number]], index: number) => {
+        const coord = coordToPercentage(marker.position, bounds);
         const color = valueToColor(marker.value)
         return <circle key={index} r={ rectWidth/2 + "%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={color} strokeWidth={"0.1%"} opacity={1} />
     }
 
-    const edgeToRectangles = (edge: Edge, pointsToInterpolate: MeasurementNode[], rectangles: JSX.Element[], gradients: JSX.Element[]) => {
+    const edgeToRectangles = (edge: Edge, pointsToInterpolate: Node[], rectangles: JSX.Element[], gradients: JSX.Element[]) => {
         const node1 = graph.nodes[edge[0]];
         const node2 = graph.nodes[edge[1]];
         let key = rectangles.length;
-        const linePoints = pointsOnLine(node1.pos, node2.pos);
+        const linePoints = pointsOnLine(node1.position, node2.position);
         for (let i=0; i < linePoints.length -1; i++) {
             const pos = [linePoints[i], linePoints[i+1]]
             let edge = pos.map((p) => {
@@ -330,7 +325,7 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
     const faceToTriangles = (face: Face, polys: JSX.Element[]) => {
         let nodes = face.map((id) => graph.nodes[id]);
         let key = polys.length;
-        const triangles = pointsOnPolygon(nodes.map((node) => node.pos))
+        const triangles = pointsOnPolygon(nodes.map((node) => node.position))
         triangles.forEach((triangle, i) => {
             let coords = "";
             let colors: string[] = []
