@@ -1,8 +1,6 @@
 import { MapContainer, TileLayer, SVGOverlay } from 'react-leaflet'
-import { useState, useEffect } from 'react';
-import gpxParser from './gpxParser';
+import { useState } from 'react';
 import AudioMarkersMap from './AudioMarkers';
-import ruteFile from  "./Rute4.txt";
 import UploadToFirebase from "./UploadToFirebase";
 
 import ColorMap from './ColorSvgOverlay';
@@ -15,25 +13,19 @@ import AudioCalibrator from './AudioCalibrator';
 
 export const graphId = "test";
 
+const activateUpload = false;
+
 const Map = () => {
 
 
     const [audio, setAudio] = useState(new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"))
-    const [place, setPlace] = useState("marker");
 
-    const [position, setPosition] = useState([63.430595, 10.392043]) 
+    const center = [63.430595, 10.392043] 
     
     const bounds = [
         [63.424350 -0.002903, 10.376433],
         [63.435264, 10.407295]
       ]
-
-
-    const [isOpen, setIsOpen] = useState(false);
-    const togglePopup = () => {
-        setIsOpen(!isOpen);
-      }
-
 
     return (
     <div >
@@ -46,7 +38,7 @@ const Map = () => {
            {/* <PopUp name={"info3"} content={"3"} />*/ }
         </div>
 
-        <MapContainer center={position} zoom={15}>
+        <MapContainer center={center} zoom={15}>
 
 
         
@@ -64,9 +56,7 @@ const Map = () => {
 
         </MapContainer>
         
-           {/*
-        <UploadToFirebase/>
-    */}
+        {activateUpload &&<UploadToFirebase/>}
         
     </div>);
 }

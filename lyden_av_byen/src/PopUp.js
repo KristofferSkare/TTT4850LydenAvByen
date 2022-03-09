@@ -1,9 +1,4 @@
-import React, {useState} from "react";
-
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-
-
-
+import {useState} from "react";
 
 const PopUpBox = props  => {
     return (

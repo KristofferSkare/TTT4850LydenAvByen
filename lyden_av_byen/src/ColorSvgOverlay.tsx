@@ -85,12 +85,10 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
     }
     
     const coordToPercentage = (pos: [number, number], boundary: [[number,number],[number, number]]=bounds) => {
-        // TODO: Use the distance function here to make it more correct. Is probably not necessary
         const top = Math.max(boundary[0][0], boundary[1][0]);
         const bottom = Math.min(boundary[0][0], boundary[1][0]);
         const left = Math.max(boundary[0][1], bounds[1][1]);
         const right = Math.min(boundary[0][1], boundary[1][1]);
-        
 
         return [ 100 * (right - pos[1])/(right - left),100 * (top - pos[0])/(top - bottom)];
     }
@@ -219,10 +217,10 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
         })
         
     },[])
-    /*
+    
     useEffect(() => {
         if (graph.nodes){
-            
+            /*
             const svgCircles = Object.entries(graph.nodes).map((entry, index) => {
                 const marker = entry[1];
                 const coord = coordToPercentage(marker.position, bounds);
@@ -233,10 +231,11 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
                 </>)
             });
             setColorMarkers(svgCircles)
-            
+            */
+           setColorMarkers([])
         }
     },[graph])
-*/
+
     const markerToCircle = (marker: Node, bounds: [[number,number],[number, number]], index: number) => {
         const coord = coordToPercentage(marker.position, bounds);
         const color = valueToColor(marker.value)
@@ -367,7 +366,8 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
         }
         setInterpolatedPoints([...circles,...triangles,...rectangles])
         setDefs(defs)
-    },[ graph ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[ graph, bounds])
 
     /*
     // Get points from continuous gps data

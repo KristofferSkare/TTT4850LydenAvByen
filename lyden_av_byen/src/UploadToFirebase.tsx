@@ -1,5 +1,5 @@
 import { collection } from "./firebase";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {graphId} from "./Map";
 
@@ -10,21 +10,20 @@ type Edge = [string, string];
 
 type Face = string[];
 
-type Graph = {
-    edges: Edge[],
-    nodes: {[id: string]: Node},
-    faces: Face[],
-}
-
 type Node = {
     position: Coordinate;
     time: Date;
     value: number;
 }
 
+type Graph = {
+    edges: Edge[],
+    nodes: {[id: string]: Node},
+    faces: Face[],
+}
 
 const UploadToFirebase = () => {   
-    //return <></>;
+
     
     const [csvFile, setCsvFile] = useState<Blob | undefined>()
 
@@ -92,26 +91,3 @@ const UploadToFirebase = () => {
 }
 
 export default UploadToFirebase
-
- // Upload MeasurementNodes
-/*
-Object.entries(graph.nodes).forEach((entry, index) => {
-
-    const localId = entry[0];
-    const dbId = ids[localId];
-    const data: Node = {position: entry[1].pos, value: entry[1].value, time: entry[1].time}
-    collection<Node>("MeasurementNodes").doc(dbId).set(data)
-})*/
-
-
-// Uploading edges
-/*
-graph.edges.forEach((edge) => {
-    collection<{nodes: Edge}>("Edges").add({nodes: [ids[edge[0]] , ids[edge[1]]]})
-})*/
-
-// Uploading faces
-/*
-graph.faces.forEach((face) => {
-    collection<{nodes: Face}>("Faces").add({nodes: face.map((node) => ids[node])})
-})*/
