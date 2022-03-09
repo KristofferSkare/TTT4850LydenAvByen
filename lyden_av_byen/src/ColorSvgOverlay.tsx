@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import jsonGraph from "./graph.json";
-import { Circle } from 'react-leaflet';
+//import gpxParser from './gpxParser';
+
+//const data = require("./data_einar.txt");
 
 const pointInPolygon = require('point-in-polygon');
 
@@ -34,9 +36,12 @@ type Graph = {
 
 
 const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[number,number],[number, number]]}) => {
-    const interpolationResolution = 3; // In meters
+    const interpolationResolutionEdge = 10; // In meters
+    const interpolationResolutionFace = 3;
     const rectWidth = 0.5;
     const overlapp = 0.005;
+
+   
 
     const [colorMarkers, setColorMarkers] = useState<JSX.Element[]>([]);
     const [lines, setLines] = useState<JSX.Element[]>([]);
@@ -111,7 +116,7 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         return neighbors
     }
 
-    const pointsOnLine = (pos1: Coordinate, pos2: Coordinate, resolution: number=interpolationResolution) => {
+    const pointsOnLine = (pos1: Coordinate, pos2: Coordinate, resolution: number=interpolationResolutionEdge) => {
         const points: Coordinate[] = [];
         const dist = distance(pos1, pos2);
         const numPoints = Math.floor(dist/ resolution) + 2;
@@ -122,7 +127,7 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         }
         return points;      
     }
-    const pointsOnPolygon = (nodes: Coordinate[], resolution: number=interpolationResolution) => {
+    const pointsOnPolygon = (nodes: Coordinate[], resolution: number=interpolationResolutionFace) => {
         let offset = 0;
         let maxLat = -360;
         let minLat = 360;
@@ -227,9 +232,10 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
             const svgCircles = Object.entries(graph.nodes).map((entry, index) => {
                 const marker = entry[1];
                 const coord = coordToPercentage(marker.pos, bounds);
+                const textCoord = [coord[0] - 0.25, coord[1] + 0.25]
                 return (
-                <><circle key={index} r={"0.5%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={"none"} stroke={"black"} strokeWidth={"0.1%"} opacity={1}/> 
-                    <text x={coord[0] +"%"} y={coord[1] +"%"} fontSize={"5%"}>{entry[0]}</text>
+                <><circle key={index} r={"0.6%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={"yellow"} stroke={"none"} strokeWidth={"0.1%"} opacity={1}/> 
+                    <text x={textCoord[0] + "%"} y={textCoord[1] + "%"} fontSize={"5%"}>{index+1}</text>
                 </>)
             });
             //setColorMarkers(svgCircles)
@@ -295,19 +301,46 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         }   
     }
 
+    const colorAverage = (colors: string[]) => {
+        let r =0;
+        let g =0;
+        let b =0;
+        colors.forEach((color, index) => {
+            r+= Number("0x" + color.slice(1,3))
+            g+= Number("0x" + color.slice(3,5))
+            b+= Number("0x" + color.slice(5,7))
+        })
+        r/= colors.length
+        g/= colors.length
+        b/= colors.length
+        r = Math.round(r)
+        g = Math.round(g)
+        b = Math.round(b)
+        const strings = [r.toString(16),g.toString(16),b.toString(16)]
+        let colorAvg = "#"
+        strings.forEach((string) => {
+            if (string.length < 2) {
+                colorAvg += "0"
+            }
+            colorAvg += string
+        })
+        return colorAvg
+    }
+
     const faceToTriangles = (face: Face, polys: JSX.Element[]) => {
         let nodes = face.map((id) => graph.nodes[id]);
         let key = polys.length;
         const triangles = pointsOnPolygon(nodes.map((node) => node.pos))
         triangles.forEach((triangle, i) => {
             let coords = "";
-            let color = ""
+            let colors: string[] = []
             triangle.forEach((pos) => {
                 const value = valueInterpolation(pos, nodes);
                 const coord  = coordToPercentage(pos)
-                color = valueToColor(value);
+                colors.push(valueToColor(value));
                 coords += coord[0] + "," + coord[1] + " ";
             })
+            const color = colorAverage(colors);
             polys.push(<polygon key={"triangle_"+ i +"_" + key} fill={color} points={coords} opacity={1}/>)
             key+=1
         })
@@ -339,7 +372,25 @@ const ColorMap = ({markers, bounds}:{markers: MeasurementNode[]; bounds: [[numbe
         }
         setInterpolatedPoints([...circles,...triangles,...rectangles])
         setDefs(defs)
-    },[graph])
+    },[ graph ])
+
+    /*
+    // Get points from continuous gps data
+    useEffect(() => {
+        gpxParser(data, true).then((res) => {
+            const markers = res as unknown as MeasurementNode[];
+            const circles = markers.map((marker: MeasurementNode, index) => {
+                const coord = coordToPercentage(marker.pos, bounds);
+                const textCoord = [coord[0] - 0.25, coord[1] + 0.25]
+                return (
+                <><circle key={index} r={"0.6%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={"yellow"} stroke={"none"} strokeWidth={"0.1%"} opacity={1}/> 
+                    <text x={textCoord[0] + "%"} y={textCoord[1] + "%"} fontSize={"5%"}>{index+1}</text>
+                </>)
+            })
+            //setColorMarkers(circles)
+        })
+    },[])
+    */
 
     return (
         <>
