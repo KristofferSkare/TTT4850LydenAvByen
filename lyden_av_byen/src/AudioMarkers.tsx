@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Marker } from "react-leaflet";
 import { collection } from './firebase'
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 
 export type AudioMarker = {
     id: string,
@@ -32,18 +31,6 @@ const AudioMarkersMap = () => {
 
   const [audioMarkers, setAudioMarkers] = useState<AudioMarker[]>([]);
 
-  const play = () => {
-    if (preAudio) {
-      console.log("Starting pre audio")
-      preAudio.play()
-    } else if (audio) { 
-      console.log("Starting audio 1")
-      audio.play()
-    } else {
-      playingRef.current = false;
-    }
-  }
-
   const stop = () => {
     if (preAudio) {
       preAudio.ontimeupdate = () => {}
@@ -72,6 +59,7 @@ const AudioMarkersMap = () => {
     if (!playingRef.current) {
       stop()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[playingRef.current])
 
   useEffect(()=>{

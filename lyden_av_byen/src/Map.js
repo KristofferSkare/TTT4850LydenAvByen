@@ -1,5 +1,4 @@
 import { MapContainer, TileLayer, SVGOverlay } from 'react-leaflet'
-import { useState } from 'react';
 import AudioMarkersMap from './AudioMarkers';
 import UploadToFirebase from "./UploadToFirebase";
 
@@ -25,10 +24,6 @@ export const graphId = "test";
 const activateUpload = false;
 
 const Map = () => {
-
-
-    const [audio, setAudio] = useState(new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"))
-
     const center = [63.430595, 10.392043] 
     
     const bounds = [
