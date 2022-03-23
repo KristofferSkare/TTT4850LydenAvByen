@@ -1,9 +1,12 @@
 import React from "react";
 
+import {useState} from "react";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Button} from "@mui/material";
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+
 function InfoText(){
     return(
     <div>
-        <h1> Info om nettsiden </h1>
         <p> 
     Hjertelig velkommen til bartebygjengerens støykart! 
     Dette kartet viser i større eller mindre detalj
@@ -42,4 +45,41 @@ function InfoText(){
     );
 }
 
-export default InfoText;
+const InfoPopUp = () => {
+    
+    const name = "info"
+    const [isOpen, setIsOpen] = useState(false);
+    const togglePopup = () => {
+        setIsOpen(!isOpen);
+        }
+
+    const close = () => {
+        setIsOpen(false)
+    }
+
+
+    return <>
+    <button 
+      aria-label={"show " + name + " box."} 
+      className="info-button"
+      onClick={togglePopup}
+      value="">
+        <InfoOutlinedIcon/>
+    </button>
+        <Dialog open={isOpen} onClose={close}>
+            <DialogTitle>
+           Info om nettsiden
+            </DialogTitle>
+            <DialogContent>
+            <InfoText/>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={close}>
+                    Lukk
+                </Button>
+            </DialogActions>
+        </Dialog>
+    </>
+}
+
+export default InfoPopUp;

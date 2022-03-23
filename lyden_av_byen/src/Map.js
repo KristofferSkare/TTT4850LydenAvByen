@@ -4,12 +4,21 @@ import AudioMarkersMap from './AudioMarkers';
 import UploadToFirebase from "./UploadToFirebase";
 
 import ColorMap from './ColorSvgOverlay';
-import PopUp from './PopUp';
-import InfoText from './InfoText';
+import InfoPopUp from './InfoPopUp';
 import NtnuLogo from './ntnulogo.svg';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import VolumeUpSharpIcon from '@mui/icons-material/VolumeUpSharp';
-import AudioCalibrator from './AudioCalibrator';
+
+
+import AudioCalibratorPopUp from './AudioCalibratorPopUp';
+import ColorScale from './ColorScale';
+
+const colormap = require('colormap')
+
+// Choose color map from here: https://www.npmjs.com/package/colormap
+const colors = colormap({
+    colormap: "portland",
+    nshades: 100
+})
+
 
 export const graphId = "test";
 
@@ -30,16 +39,15 @@ const Map = () => {
     return (
     <div >
  
-        <img class="svg-icon" src={NtnuLogo} alt="NTNU Logo" /> 
+        <img className="svg-icon" src={NtnuLogo} alt="NTNU Logo" /> 
 
-        <div class="popup-grid">
-            <PopUp name={"info"}  content={<InfoText/>} icon={<InfoOutlinedIcon/>} />
-            <PopUp name={"kalibrer"} content={<AudioCalibrator audio={audio} setAudio={(val) => {setAudio(val)}}/>} icon={<VolumeUpSharpIcon/>} />
-           {/* <PopUp name={"info3"} content={"3"} />*/ }
+        <div className="popup-grid">
+            <InfoPopUp />
+            <AudioCalibratorPopUp />
         </div>
-
+        <ColorScale colors={colors}/>
         <MapContainer center={center} zoom={15}>
-
+       
 
         
         <TileLayer
@@ -48,7 +56,7 @@ const Map = () => {
             />
         
             <SVGOverlay bounds={bounds}>
-                <ColorMap bounds={bounds}/>
+                <ColorMap bounds={bounds} colors={colors}/>
             </SVGOverlay>     
 
  

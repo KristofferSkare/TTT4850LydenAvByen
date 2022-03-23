@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Marker } from "react-leaflet";
 import { collection } from './firebase'
-
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 
 export type AudioMarker = {
     id: string,
@@ -143,11 +143,12 @@ const AudioMarkersMap = () => {
     setMarker(markerId)
 }
 
-  const audioMarkersMap = audioMarkers.map((audioMarker) => {
+  const audioMarkersMap = audioMarkers.map((audioMarker, index) => {
     
     return(
-      <> 
-    <Marker 
+      
+    <Marker
+    key={index}
           position={[audioMarker.latitude, audioMarker.longitude]}  
           eventHandlers={{
               click: () => {
@@ -155,7 +156,7 @@ const AudioMarkersMap = () => {
               },
           }}>
           </Marker>
-          </> 
+
     )
 
   });

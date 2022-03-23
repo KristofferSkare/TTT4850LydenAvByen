@@ -9,15 +9,6 @@ import {graphId} from "./Map";
 
 const pointInPolygon = require('point-in-polygon');
 
-const colormap = require('colormap')
-
-
-// Choose color map from here: https://www.npmjs.com/package/colormap
-const colors = colormap({
-    colormap: "hot",
-    nshades: 100
-})
-
 type Coordinate = [number, number];
 
 type Node = {
@@ -36,8 +27,20 @@ type Graph = {
     faces: Face[],
 }
 
+export const valueToColor = (strength: number, colors: string[],  minStrength=40, maxStrength=80) => {
+    const mappedStrength = (strength - minStrength)/(maxStrength - minStrength);
+    const index = Math.floor(colors.length  * mappedStrength)
+    if (index<=0){
+        return colors[0];
+    }
+    if (index >= colors.length) {
+        return colors[colors.length -1];
+    }
+    return colors[index]
+}
 
-const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
+
+const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[number, number]]}) => {
     const interpolationResolutionEdge = 10; // In meters
     const interpolationResolutionFace = 3;
     const rectWidth = 0.5;
@@ -93,17 +96,7 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
         return [ 100 * (right - pos[1])/(right - left),100 * (top - pos[0])/(top - bottom)];
     }
 
-    const valueToColor = (strength: number, minStrength=0, maxStrength = 1) => {
-        const mappedStrength = (strength - minStrength)/(maxStrength - minStrength);
-        const index = Math.floor(colors.length  * mappedStrength)
-        if (index<=0){
-            return colors[0];
-        }
-        if (index >= colors.length) {
-            return colors[colors.length -1];
-        }
-        return colors[index]
-    }
+   
 
     const pointsOnLine = (pos1: Coordinate, pos2: Coordinate, resolution: number=interpolationResolutionEdge) => {
         const points: Coordinate[] = [];
@@ -231,14 +224,14 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
                 </>)
             });
             setColorMarkers(svgCircles)
-            */
+           */ 
            setColorMarkers([])
         }
     },[graph])
 
     const markerToCircle = (marker: Node, bounds: [[number,number],[number, number]], index: number) => {
         const coord = coordToPercentage(marker.position, bounds);
-        const color = valueToColor(marker.value)
+        const color = valueToColor(marker.value, colors)
         return <circle key={index} r={ rectWidth/2 + "%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={color} strokeWidth={"0.1%"} opacity={1} />
     }
 
@@ -252,7 +245,7 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
             let edge = pos.map((p) => {
                 const value = valueInterpolation(p, pointsToInterpolate);
                 const coord  = coordToPercentage(p)
-                const color = valueToColor(value);
+                const color = valueToColor(value, colors);
                 return {x: coord[0], y: coord[1], color: color }
             })
             let dx = edge[1].x - edge[0].x;
@@ -295,18 +288,18 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
         }   
     }
 
-    const colorAverage = (colors: string[]) => {
+    const colorAverage = (colorArr: string[]) => {
         let r =0;
         let g =0;
         let b =0;
-        colors.forEach((color, index) => {
+        colorArr.forEach((color, index) => {
             r+= Number("0x" + color.slice(1,3))
             g+= Number("0x" + color.slice(3,5))
             b+= Number("0x" + color.slice(5,7))
         })
-        r/= colors.length
-        g/= colors.length
-        b/= colors.length
+        r/= colorArr.length
+        g/= colorArr.length
+        b/= colorArr.length
         r = Math.round(r)
         g = Math.round(g)
         b = Math.round(b)
@@ -327,14 +320,15 @@ const ColorMap = ({bounds}:{bounds: [[number,number],[number, number]]}) => {
         const triangles = pointsOnPolygon(nodes.map((node) => node.position))
         triangles.forEach((triangle, i) => {
             let coords = "";
-            let colors: string[] = []
+            let colorsInTriangle: string[] = []
             triangle.forEach((pos) => {
                 const value = valueInterpolation(pos, nodes);
                 const coord  = coordToPercentage(pos)
-                colors.push(valueToColor(value));
+                colorsInTriangle.push(valueToColor(value, colors));
                 coords += coord[0] + "," + coord[1] + " ";
             })
-            const color = colorAverage(colors);
+
+            const color = colorAverage(colorsInTriangle);
             polys.push(<polygon key={"triangle_"+ i +"_" + key} fill={color} points={coords} opacity={1}/>)
             key+=1
         })
