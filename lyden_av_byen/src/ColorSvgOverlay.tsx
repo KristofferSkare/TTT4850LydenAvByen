@@ -11,7 +11,7 @@ const pointInPolygon = require('point-in-polygon');
 
 type Coordinate = [number, number];
 
-type Node = {
+export type Node = {
     position: Coordinate;
     time: Date;
     value: number;
@@ -21,7 +21,7 @@ type Edge = [string, string];
 
 type Face = string[];
 
-type Graph = {
+export type Graph = {
     edges: Edge[],
     nodes: {[id: string]: Node},
     faces: Face[],

@@ -68,7 +68,7 @@
 /* Popup style */
 .popup-grid {
   position: absolute;
-  grid-template-columns: auto auto auto ;
+  grid-template-columns: auto auto auto auto;
   display: inline-grid;
   top: 20px;
   left: 50px;
@@ -103,8 +103,8 @@
   
   position: relative;
   z-index: 2;
-  width: auto;
-  height: auto;
+  width: 43px;
+  height: 43px;
   top: auto;
   left: auto;
   margin: 5%;
@@ -185,4 +185,22 @@
   align-items: center;
   height: 100%;
   margin: 0px 10px 0px 0px;
+}
+
+.measurement-switch {
+  
+  position: relative;
+  z-index: 2;
+  width: auto;
+  height: auto;
+  top: auto;
+  left: auto;
+  margin-left: 10px;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  font-family: Arial, Helvetica, sans-serif;
 }
