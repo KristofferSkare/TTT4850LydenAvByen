@@ -15,6 +15,7 @@ const colormap = require('colormap')
 // Choose color map from here: https://www.npmjs.com/package/colormap
 const colors = colormap({
     colormap: "portland",
+    //colormap: "inferno",
     nshades: 100
 })
 

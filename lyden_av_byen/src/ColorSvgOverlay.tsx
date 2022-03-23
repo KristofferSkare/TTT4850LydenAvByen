@@ -27,9 +27,16 @@ type Graph = {
     faces: Face[],
 }
 
-export const valueToColor = (strength: number, colors: string[],  minStrength=40, maxStrength=80) => {
-    const mappedStrength = (strength - minStrength)/(maxStrength - minStrength);
-    const index = Math.floor(colors.length  * mappedStrength)
+export const valueToColor = (strength: number, colors: string[],  minStrength=40, maxStrength=75) => {
+    // Weighting color by 3rd order polynomial
+    const x_0 = 0.7;
+    const a = 0.5;
+    const b = -3*a*x_0;
+    const c = 1 -a -b;
+    
+    const x = (strength - minStrength)/(maxStrength - minStrength);
+    const val = x*(a *x*x + b*x + c);
+    const index = Math.floor(colors.length  * val)
     if (index<=0){
         return colors[0];
     }
@@ -71,7 +78,18 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
         // calculate the result
         return c * r;
     }
+    
+    const dbToPressure = (db: number) => {
+        const p0 = 0.00002
+        const c = 20;
+        return p0*Math.pow(10,db/c)
+    }
 
+    const pressureToDb = (p:number) => {
+        const p0 = 0.00002
+        const c = 20;
+        return c*Math.log10(p/p0);
+    }
     const valueInterpolation = (position: Coordinate, markers: Node[], ) => {
         let sum_dist = 0;
         let sum_value = 0;
@@ -82,9 +100,9 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
             }
             const dist_sq_inverse = Math.pow(dist, -2)
             sum_dist += dist_sq_inverse;
-            sum_value += marker.value *dist_sq_inverse; 
+            sum_value += dbToPressure(marker.value) *dist_sq_inverse; 
         }
-        return sum_value/sum_dist;
+        return pressureToDb(sum_value/sum_dist)
     }
     
     const coordToPercentage = (pos: [number, number], boundary: [[number,number],[number, number]]=bounds) => {
