@@ -4,6 +4,7 @@ import { collection } from "./firebase";
 import {graphId} from "./Map";
 import {Graph, Node} from "./ColorSvgOverlay";
 import { Marker, Popup } from 'react-leaflet';
+import { MeasurementMarkerIcon } from './MarkerIcons';
 
 const MeasurementMarkers = () => {
 
@@ -27,7 +28,10 @@ const MeasurementMarkers = () => {
 
     return <>
         {markers.map((node) => 
-        <Marker position={node.position}>
+        <Marker position={node.position}
+        // @ts-ignore
+        icon={MeasurementMarkerIcon}
+        >
              <Popup>
                 <div>
                     {"Posisjon: " + node.position}

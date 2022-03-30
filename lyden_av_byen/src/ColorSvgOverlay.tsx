@@ -29,8 +29,8 @@ export type Graph = {
 
 export const valueToColor = (strength: number, colors: string[],  minStrength=40, maxStrength=75) => {
     // Weighting color by 3rd order polynomial
-    const x_0 = 0.7;
-    const a = 0.5;
+    const x_0 = 0.45;
+    const a = 1.2;
     const b = -3*a*x_0;
     const c = 1 -a -b;
     

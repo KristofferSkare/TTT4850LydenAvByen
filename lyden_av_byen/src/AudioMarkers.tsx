@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Marker } from "react-leaflet";
 import { collection } from './firebase'
+import { PlayMarkerIcon } from "./MarkerIcons";
 
 export type AudioMarker = {
     id: string,
@@ -136,13 +137,15 @@ const AudioMarkersMap = () => {
     return(
       
     <Marker
-    key={index}
-          position={[audioMarker.latitude, audioMarker.longitude]}  
-          eventHandlers={{
-              click: () => {
-                markerOnClick(audioMarker)
-              },
-          }}>
+    //@ts-ignore
+      icon={PlayMarkerIcon}
+      key={index}
+      position={[audioMarker.latitude, audioMarker.longitude]}  
+      eventHandlers={{
+          click: () => {
+            markerOnClick(audioMarker)
+          },
+      }}>
           </Marker>
 
     )
