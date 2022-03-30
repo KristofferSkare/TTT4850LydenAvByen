@@ -44,8 +44,8 @@ function AudioCalibrator({lowIsPlaying, highIsPlaying, audioLow, audioHigh, onCl
 
 const AudioCalibratorPopUp = () => {
   const name = "kalibrer"
-  const [audioLow,] = useState(new Audio("https://firebasestorage.googleapis.com/v0/b/ttt4850lydenavbyen-a54cf.appspot.com/o/spotrecorings%2FPunkt104_Loop.mp3?alt=media&token=edd7c1bc-8b78-4712-908c-20028a784622"));
-  const [audioHigh,] = useState(new Audio("https://firebasestorage.googleapis.com/v0/b/ttt4850lydenavbyen-a54cf.appspot.com/o/spotrecorings%2FPunkt104_Loop.mp3?alt=media&token=edd7c1bc-8b78-4712-908c-20028a784622"));
+  const [audioLow,] = useState(new Audio("https://firebasestorage.googleapis.com/v0/b/ttt4850lydenavbyen-a54cf.appspot.com/o/Laveste%20lyd.mp3?alt=media&token=e6722e4c-b1d0-467d-8218-80a20fbd65d7"));
+  const [audioHigh,] = useState(new Audio("https://firebasestorage.googleapis.com/v0/b/ttt4850lydenavbyen-a54cf.appspot.com/o/H%C3%B8yeste%20lyd.mp3?alt=media&token=7a9b07e1-2c19-4a5e-8f24-d366a86651f4"));
   
   const [lowIsPlaying, setLowIsPlaying] = useState(false)
   const [highIsPlaying, setHighIsPlaying] = useState(false)
