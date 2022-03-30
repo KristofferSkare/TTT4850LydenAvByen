@@ -33,7 +33,7 @@ const MeasurementMarkers = () => {
                     {"Posisjon: " + node.position}
                 </div>
                 <div>
-                    {"Måling: " + node.value + " dB"}
+                    {"Målt lydstyrke: " + node.value + " dB"}
                 </div>
         </Popup>
         </Marker>)}
