@@ -73,7 +73,6 @@ const parseGPXFileStringSpeedBelowThreshold = (filestring, speedThreshold) => {
         let pos = parseCoords(elems[0]);
         let time = parseTime(elems[2])
         let speed = parseSpeed(elems[3])
-        //console.log(speed)
         if (speed < speedThreshold && !prevSlowSpeed) {
             if (coords.length < 1) {
                 prevSlowSpeed = true

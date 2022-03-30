@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Marker } from "react-leaflet";
 import { collection } from './firebase'
-import { PlayMarkerIcon } from "./MarkerIcons";
+import { PlayMarkerIcon, PlayMarkerActiveIcon } from "./MarkerIcons";
 
 export type AudioMarker = {
     id: string,
@@ -17,8 +17,7 @@ const AudioMarkersMap = () => {
   const [preAudio, setPreAudio] = useState<null | HTMLAudioElement>(null)
   const [audio, setAudio] = useState<null | HTMLAudioElement>(null);
   const [audio2, setAudio2] = useState<null | HTMLAudioElement>(null);
-  const playingRef = useRef(false);
-  
+  const playingRef = useRef(false);  
   
   const [marker, setMarker] = useState("");
   //const [fadeInInterval, setFadeIninterval] = useState<NodeJS.Timer| undefined>();
@@ -80,7 +79,6 @@ const AudioMarkersMap = () => {
         if (targetAudio.duration - targetAudio.currentTime <= crossFadeTime) {
           if (a.paused && playingRef.current) {
             a.play()
-            console.log("Starting audio 1")
           }
         }
       }
@@ -100,7 +98,6 @@ const AudioMarkersMap = () => {
       if (targetAudio.duration - targetAudio.currentTime <= crossFadeTime) {
         if (a2.paused && playingRef.current) {
           a2.play()
-          console.log("Starting audio 2")
         }
       }
     }
@@ -109,7 +106,6 @@ const AudioMarkersMap = () => {
       if (targetAudio.duration - targetAudio.currentTime <= crossFadeTime) {
         if (a.paused && playingRef.current) {
           a.play()
-          console.log("Starting audio 1")
         }
       }
     }
@@ -125,11 +121,13 @@ const AudioMarkersMap = () => {
       setAudio2(audio2)
       setPreAudio(preAudio);
       playingRef.current = true
+      setMarker(markerId)
     } else {
+      setMarker("");
       playingRef.current = false
     }
 
-    setMarker(markerId)
+    
 }
 
   const audioMarkersMap = audioMarkers.map((audioMarker, index) => {
@@ -138,7 +136,7 @@ const AudioMarkersMap = () => {
       
     <Marker
     //@ts-ignore
-      icon={PlayMarkerIcon}
+      icon={audioMarker.id === marker ?PlayMarkerActiveIcon :PlayMarkerIcon}
       key={index}
       position={[audioMarker.latitude, audioMarker.longitude]}  
       eventHandlers={{

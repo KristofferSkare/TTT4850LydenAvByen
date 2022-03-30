@@ -11,6 +11,17 @@ const PlayMarkerIcon = L.icon({
   shadowAnchor: null
 });
 
+
+const PlayMarkerActiveIcon = L.icon({
+  iconUrl: require('./Icon_Sound_Playing.png'),
+  iconSize: [60,60],
+  iconAnchor: [30,60],
+  popupAnchor: null,
+  shadowUrl: null,
+  shadowSize: null,
+  shadowAnchor: null
+});
+
 const MeasurementMarkerIcon = L.icon({
   iconUrl: require('./Icon_Normal.png'),
   iconSize: [30,30],
@@ -22,4 +33,4 @@ const MeasurementMarkerIcon = L.icon({
 });
 
 
-export { PlayMarkerIcon, MeasurementMarkerIcon };
+export { PlayMarkerIcon, MeasurementMarkerIcon, PlayMarkerActiveIcon };
