@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection } from "./firebase";
 import {graphId} from "./Map";
+import MLR from "ml-regression-multivariate-linear";
 
 //import jsonGraph from "./graph.json";
 //import gpxParser from './gpxParser';
@@ -79,30 +80,27 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
         return c * r;
     }
     
-    const dbToPressure = (db: number) => {
-        const p0 = 0.00002
-        const c = 20;
-        return p0*Math.pow(10,db/c)
-    }
-
-    const pressureToDb = (p:number) => {
-        const p0 = 0.00002
-        const c = 20;
-        return c*Math.log10(p/p0);
-    }
-    const valueInterpolation = (position: Coordinate, markers: Node[], ) => {
+    const valueInterpolationLine = (position: Coordinate, markers: Node[], ) => {
         let sum_dist = 0;
+        let sum_cross = 0;
         let sum_value = 0;
         for (const marker of markers) {
             const dist = distance(position, marker.position)
-            if (dist < 0.1) {
-                return marker.value;
-            }
-            const dist_sq_inverse = Math.pow(dist, -2)
-            sum_dist += dist_sq_inverse;
-            sum_value += dbToPressure(marker.value) *dist_sq_inverse; 
+            sum_dist += dist;
+            sum_value += marker.value;
+            sum_cross += marker.value * dist; 
         }
-        return pressureToDb(sum_value/sum_dist)
+        return sum_value - sum_cross/sum_dist;
+    }
+
+    const doMLROnPoints = (markers: Node[]) => {
+        const x: [number, number][] = [];
+        const y: [number][] = [];
+        markers.forEach((marker) => {
+            x.push(marker.position)
+            y.push([marker.value])
+        })
+        return new MLR(x,y);
     }
     
     const coordToPercentage = (pos: [number, number], boundary: [[number,number],[number, number]]=bounds) => {
@@ -253,7 +251,7 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
         return <circle key={index} r={ rectWidth/2 + "%"} cx={coord[0] +"%"} cy={coord[1] +"%"} fill={color} strokeWidth={"0.1%"} opacity={1} />
     }
 
-    const edgeToRectangles = (edge: Edge, pointsToInterpolate: Node[], rectangles: JSX.Element[], gradients: JSX.Element[]) => {
+    const edgeToRectangles = (edge: Edge, pointsToInterpolate: Node[], rectangles: JSX.Element[], gradients: JSX.Element[], mlr?: MLR) => {
         const node1 = graph.nodes[edge[0]];
         const node2 = graph.nodes[edge[1]];
         let key = rectangles.length;
@@ -261,7 +259,7 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
         for (let i=0; i < linePoints.length -1; i++) {
             const pos = [linePoints[i], linePoints[i+1]]
             let edge = pos.map((p) => {
-                const value = valueInterpolation(p, pointsToInterpolate);
+                const value = mlr ? mlr.predict(p)[0] : valueInterpolationLine(p, pointsToInterpolate);
                 const coord  = coordToPercentage(p)
                 const color = valueToColor(value, colors);
                 return {x: coord[0], y: coord[1], color: color }
@@ -332,7 +330,7 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
         return colorAvg
     }
 
-    const faceToTriangles = (face: Face, polys: JSX.Element[]) => {
+    const faceToTriangles = (face: Face, polys: JSX.Element[], mlr: MLR) => {
         let nodes = face.map((id) => graph.nodes[id]);
         let key = polys.length;
         const triangles = pointsOnPolygon(nodes.map((node) => node.position))
@@ -340,7 +338,7 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
             let coords = "";
             let colorsInTriangle: string[] = []
             triangle.forEach((pos) => {
-                const value = valueInterpolation(pos, nodes);
+                const value = mlr.predict(pos)[0];
                 const coord  = coordToPercentage(pos)
                 colorsInTriangle.push(valueToColor(value, colors));
                 coords += coord[0] + "," + coord[1] + " ";
@@ -368,11 +366,14 @@ const ColorMap = ({bounds, colors}:{colors: string[];bounds: [[number,number],[n
         }   
         if (graph.faces) {
             graph.faces.forEach((face) => {
-                faceToTriangles(face, triangles)    
+                
+               
                 const nodes = face.map((i) => graph.nodes[i])
+                const mlr = doMLROnPoints(nodes)
+                faceToTriangles(face, triangles, mlr)    
                 for (let i = 0; i< face.length; i++) {
                     let edge: Edge = [face[i], face[(i+1)%face.length]];
-                    edgeToRectangles(edge, nodes, rectangles, defs)
+                    edgeToRectangles(edge, nodes, rectangles, defs, mlr)
                 }     
             })
         }
